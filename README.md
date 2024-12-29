@@ -1,6 +1,5 @@
 
 
-```markdown
 # RDP Setup Script
 
 ![RDP Setup](https://img.shields.io/badge/RDP-Setup-blue)
