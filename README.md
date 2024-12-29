@@ -88,34 +88,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Acknowledgments
 Special thanks to the contributors and the open-source community for their valuable tools and libraries.
-
-## CSS Styling
-To further enhance the appearance of this README, you can use CSS for Markdown files by integrating it with your GitHub Pages or using tools that support CSS for Markdown rendering.
-
----
-
-By following these instructions, you'll be able to set up your RDP and receive real-time updates through your Telegram bot. If you need any further help or have specific questions, feel free to reach out!
-```
-
-### How to Use the README:
-1. **Create a README.md File**:
-   - In the root of your repository, create a file named `README.md`.
-   ```bash
-   nano README.md
-   ```
-
-2. **Copy the Content**:
-   - Copy the content provided above into the `README.md` file.
-
-3. **Save the README.md File**:
-   - Save the file in your terminal (in nano, press `Ctrl+X`, then `Y`, and then `Enter`).
-
-4. **Commit and Push the README.md File to GitHub**:
-   ```bash
-   git add README.md
-   git commit -m "Add advanced and beautifully designed README"
-   git push origin main
-   ```
-
-By following these steps, your repository will have a beautifully designed and comprehensive README that explains the setup process, features, and usage instructions.
-
