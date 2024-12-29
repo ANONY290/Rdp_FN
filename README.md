@@ -1,6 +1,4 @@
-Here's the full content of the advanced, beautifully designed README file for your GitHub repository. You can copy this and add it to your `README.md` file.
 
-### Advanced README.md Content
 
 ```markdown
 # RDP Setup Script
