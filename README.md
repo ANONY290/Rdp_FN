@@ -1,17 +1,24 @@
 # Windows RDP Setup Script
 
-This repository contains a script to set up Windows 12 with Remote Desktop Protocol (RDP) on a VPS. The script automates the process of installing Windows, configuring RDP, and providing the necessary login details.
+This repository contains a comprehensive script to set up Windows 11 with Remote Desktop Protocol (RDP) on a VPS. The script automates the process of installing Windows, configuring RDP, and providing the necessary login details.
+
+---
 
 ## Features
-- Automates the installation of Windows 12 on a VPS.
-- Configures Remote Desktop Protocol (RDP) for remote access.
-- Prompts the user for necessary inputs during execution.
-- Provides the IP address, username, and password for RDP login.
+- **Automated Setup**: The script handles the installation of Windows 11 on a VPS.
+- **Remote Access**: Configures RDP for secure remote access.
+- **Custom Configuration**: Allows you to specify the amount of RAM, number of CPUs, and admin password.
+- **Error Handling**: Detailed error logging with potential solutions.
+- **Time Tracking**: Logs the time taken for each step and overall process.
+
+---
 
 ## Prerequisites
 - A VPS with root access (e.g., DigitalOcean Droplet).
 - SSH access to the VPS.
-- Git installed on the VPS.
+- Git and Wget installed on the VPS.
+
+---
 
 ## Usage
 
@@ -46,6 +53,8 @@ This repository contains a script to set up Windows 12 with Remote Desktop Proto
 
 7. **Access RDP**:
     - After the installation is complete, the script will provide the IP address, username, and password for RDP login.
+
+---
 
 ## Example
 Here’s an example of how to run the script:
