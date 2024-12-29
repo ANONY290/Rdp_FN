@@ -44,14 +44,24 @@ cleanup() {
 START_TIME=$(date +%s)
 log "Script started."
 
-# Prompt for inputs
-read -p "Enter the URL to the Windows ISO file: " WIN_ISO_URL
+# Create a temporary input file
+cat << EOF > /tmp/rdp_inputs.txt
+$(read -p "Enter the URL to the Windows ISO file: " WIN_ISO_URL
+echo "WIN_ISO_URL=$WIN_ISO_URL"
 read -p "Enter the amount of RAM for the VM (in MB, e.g., 4096): " RAM_SIZE
+echo "RAM_SIZE=$RAM_SIZE"
 read -p "Enter the number of CPUs for the VM: " CPU_COUNT
+echo "CPU_COUNT=$CPU_COUNT"
 read -s -p "Enter a password for the Windows administrator account: " ADMIN_PASSWORD
-echo
+echo "ADMIN_PASSWORD=$ADMIN_PASSWORD"
 read -p "Enter your Telegram Bot Token (optional): " BOT_TOKEN
-read -p "Enter your Telegram User ID (optional): " USER_ID"
+echo "BOT_TOKEN=$BOT_TOKEN"
+read -p "Enter your Telegram User ID (optional): " USER_ID
+echo "USER_ID=$USER_ID")
+EOF
+
+# Source the input file
+source /tmp/rdp_inputs.txt
 
 # Validate inputs
 validate_input "$WIN_ISO_URL" "Windows ISO URL"
