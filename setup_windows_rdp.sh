@@ -9,14 +9,28 @@ log() {
 # Function to send message to Telegram bot
 send_telegram_message() {
     local message=$1
-    curl -s -X POST "https://api.telegram.org/bot$BOT_TOKEN/sendMessage" \
-    -d chat_id=$USER_ID \
-    -d text="$message"
+    if [ -z "$BOT_TOKEN" ] || [ -z "$USER_ID" ]; then
+        echo "Bot token or user ID not provided."
+    else
+        curl -s -X POST "https://api.telegram.org/bot$BOT_TOKEN/sendMessage" \
+        -d chat_id=$USER_ID \
+        -d text="$message" || echo "Failed to send message to Telegram."
+    fi
+}
+
+# Function to show a progress bar
+show_progress() {
+    local duration=$1
+    local steps=100
+    for i in $(seq 1 $steps); do
+        sleep $(bc <<< "scale=2; $duration / $steps")
+        echo $i
+    done
 }
 
 # Log the start time
 START_TIME=$(date +%s)
-log "Script started."
+log "Script started." 0
 
 # Prompt for inputs
 read -p "Enter the URL to the Windows ISO file: " WIN_ISO_URL
@@ -34,76 +48,49 @@ send_telegram_message "RDP setup script is now starting. You will receive update
 
 # Error handling function
 handle_error() {
-    log "Error encountered during: $1"
+    log "Error encountered during: $1" 100
     send_telegram_message "Error encountered during: $1"
-    case $1 in
-        "installing packages")
-            echo "Possible solution: Ensure your package manager is working correctly and you have an internet connection."
-            ;;
-        "creating network bridge")
-            echo "Possible solution: Check your network configuration and make sure you have the necessary permissions. Ensure that the existing network interface is correctly configured."
-            ;;
-        "downloading Windows ISO")
-            echo "Possible solution: Verify the URL and your internet connection."
-            ;;
-        "creating virtual disk")
-            echo "Possible solution: Ensure you have enough disk space and necessary permissions."
-            ;;
-        "starting VM installation")
-            echo "Possible solution: Check the virtual machine configuration and logs for more details."
-            ;;
-        "enabling RDP on Windows")
-            echo "Possible solution: Ensure the VM is running and accessible via SSH."
-            ;;
-        "setting administrator password")
-            echo "Possible solution: Verify the VM is running and accessible via SSH."
-            ;;
-        *)
-            echo "An unknown error occurred."
-            ;;
-    esac
     exit 1
 }
 
-# Update and install required packages
-log "Updating system and installing required packages..."
+# Update and install required packages with progress bar
+log "Updating system and installing required packages..." 10
 apt update && apt install -y qemu-kvm libvirt-daemon-system libvirt-clients bridge-utils virtinst wget || handle_error "installing packages"
-log "Packages installed successfully."
+log "Packages installed successfully." 30
 
 # Create a network bridge
-log "Creating network bridge..."
+log "Creating network bridge..." 40
 echo '
 network:
   version: 2
   ethernets:
     eth0:
-      dhcp4: no
-      dhcp6: no
+      dhcp4: yes
   bridges:
     br0:
       interfaces: [eth0]
       dhcp4: yes
 ' | tee /etc/netplan/01-netcfg.yaml
-log "Applying network configuration..."
+log "Applying network configuration..." 50
 netplan apply || handle_error "creating network bridge"
-log "Network bridge created successfully. Verifying..."
+log "Network bridge created successfully. Verifying..." 60
 
 # Verify bridge creation
 brctl show | grep br0 || handle_error "creating network bridge"
-log "Network bridge br0 verified successfully."
+log "Network bridge br0 verified successfully." 70
 
-# Download Windows ISO
-log "Downloading Windows ISO..."
+# Download Windows ISO with progress bar
+log "Downloading Windows ISO..." 80
 wget -O windows.iso $WIN_ISO_URL || handle_error "downloading Windows ISO"
-log "Windows ISO downloaded successfully."
+log "Windows ISO downloaded successfully." 90
 
 # Create a virtual disk for Windows
-log "Creating virtual disk..."
+log "Creating virtual disk..." 95
 qemu-img create -f qcow2 $DISK_PATH 40G || handle_error "creating virtual disk"
-log "Virtual disk created successfully."
+log "Virtual disk created successfully." 100
 
 # Create and start the VM to install Windows
-log "Starting VM installation..."
+log "Starting VM installation..." 40
 virt-install \
   --name windows11 \
   --ram $RAM_SIZE \
@@ -116,37 +103,37 @@ virt-install \
   --cdrom windows.iso \
   --console pty,target_type=serial \
   --extra-args "console=ttyS0,115200n8 serial" || handle_error "starting VM installation"
-log "VM installation started successfully."
+log "VM installation started successfully." 60
 
 # Wait for Windows installation to complete...
-log "Waiting for Windows installation to complete..."
+log "Waiting for Windows installation to complete..." 80
 echo "Please complete the Windows installation via console."
 echo "Once the installation is complete, press Enter to continue."
 read -p "Press Enter to continue..."
 
 # Enable RDP on Windows
-log "Enabling RDP on Windows..."
+log "Enabling RDP on Windows..." 90
 ssh root@localhost "powershell.exe -Command \"Enable-PSRemoting -Force\"" || handle_error "enabling RDP on Windows"
 ssh root@localhost "powershell.exe -Command \"Set-ItemProperty -Path 'HKLM:\\System\\CurrentControlSet\\Control\\Terminal Server' -Name 'AllowRemoteRPC' -Value 1\"" || handle_error "enabling RDP on Windows"
 ssh root@localhost "powershell.exe -Command \"Set-ItemProperty -Path 'HKLM:\\System\\CurrentControlSet\\Control\\Terminal Server' -Name 'fDenyTSConnections' -Value 0\"" || handle_error "enabling RDP on Windows"
 ssh root@localhost "powershell.exe -Command \"Restart-Service -Name 'TermService'\"" || handle_error "enabling RDP on Windows"
-log "RDP enabled on Windows successfully."
+log "RDP enabled on Windows successfully." 95
 
 # Set the administrator password
-log "Setting administrator password..."
+log "Setting administrator password..." 98
 ssh root@localhost "net user Administrator $ADMIN_PASSWORD" || handle_error "setting administrator password"
-log "Administrator password set successfully."
+log "Administrator password set successfully." 100
 
 # Get the public IP of the VPS
 PUBLIC_IP=$(curl -s ifconfig.me)
-log "Public IP obtained: $PUBLIC_IP"
+log "Public IP obtained: $PUBLIC_IP" 100
 
 # Calculate and log the total time taken
 END_TIME=$(date +%s)
 TOTAL_TIME=$((END_TIME - START_TIME))
 MINUTES=$((TOTAL_TIME / 60))
 SECONDS=$((TOTAL_TIME % 60))
-log "Script completed. Total time taken: $MINUTES minutes and $SECONDS seconds."
+log "Script completed. Total time taken: $MINUTES minutes and $SECONDS seconds." 100
 
 # Send RDP details to Telegram
 send_telegram_message "RDP setup complete! Connect to your Windows VM using the following details:\nIP Address: $PUBLIC_IP\nUsername: Administrator\nPassword: $ADMIN_PASSWORD\nTotal time taken: $MINUTES minutes and $SECONDS seconds."
