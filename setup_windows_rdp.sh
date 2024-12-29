@@ -16,37 +16,11 @@ read -p "Enter the number of CPUs for the VM: " CPU_COUNT
 read -p "Enter a password for the Windows administrator account: " ADMIN_PASSWORD
 
 # Fixed variables
-DISK_PATH="/var/lib/libvirt/images/windows.qcow2"
+DISK_PATH="$HOME/windows.qcow2"
 
 # Error handling function
 handle_error() {
     log "Error encountered during: $1"
-    case $1 in
-        "installing packages")
-            echo "Possible solution: Ensure your package manager is working correctly and you have an internet connection."
-            ;;
-        "creating network bridge")
-            echo "Possible solution: Check your network configuration and make sure you have the necessary permissions."
-            ;;
-        "downloading Windows ISO")
-            echo "Possible solution: Verify the URL and your internet connection."
-            ;;
-        "creating virtual disk")
-            echo "Possible solution: Ensure you have enough disk space and necessary permissions."
-            ;;
-        "starting VM installation")
-            echo "Possible solution: Check the virtual machine configuration and logs for more details."
-            ;;
-        "enabling RDP on Windows")
-            echo "Possible solution: Ensure the VM is running and accessible via SSH."
-            ;;
-        "setting administrator password")
-            echo "Possible solution: Verify the VM is running and accessible via SSH."
-            ;;
-        *)
-            echo "An unknown error occurred."
-            ;;
-    esac
     exit 1
 }
 
@@ -69,8 +43,13 @@ network:
       interfaces: [eth0]
       dhcp4: yes
 ' | sudo tee /etc/netplan/01-netcfg.yaml
+log "Applying network configuration..."
 sudo netplan apply || handle_error "creating network bridge"
-log "Network bridge created successfully."
+log "Network bridge created successfully. Verifying..."
+
+# Verify bridge creation
+sudo brctl show | grep br0 || handle_error "creating network bridge"
+log "Network bridge br0 verified successfully."
 
 # Download Windows ISO
 log "Downloading Windows ISO..."
@@ -85,7 +64,7 @@ log "Virtual disk created successfully."
 # Create and start the VM to install Windows
 log "Starting VM installation..."
 sudo virt-install \
-  --name windows12 \
+  --name windows11 \
   --ram $RAM_SIZE \
   --disk path=$DISK_PATH,format=qcow2 \
   --vcpus $CPU_COUNT \
